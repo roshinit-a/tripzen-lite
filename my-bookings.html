@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Bookings – TripZen</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+<nav class="navbar">
+  <a href="index.html" class="logo">Trip<span>Zen</span> ✈️</a>
+  <ul class="nav-links">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="packages.html">Packages</a></li>
+    <li><a href="my-bookings.html" class="active">My Bookings</a></li>
+  </ul>
+  <div class="nav-right">
+    <a href="login.html" id="navLogin"><button class="btn btn-outline">Login</button></a>
+    <div id="navUser" style="display:none;gap:10px;align-items:center"></div>
+  </div>
+</nav>
+<div class="page-header"><h1>📋 My Bookings</h1><p>View and manage your travel bookings</p></div>
+
+<section class="section" style="max-width:1000px;margin:0 auto">
+  <div id="alertBox"></div>
+  <div id="bookingList"></div>
+</section>
+
+<footer style="background:var(--dark);color:#ccc;padding:22px 5%;text-align:center"><p>&copy; 2026 TripZen. All rights reserved.</p></footer>
+
+<script src="js/db.js"></script>
+<script>
+  if (!DB.isLoggedIn()) location.href = 'login.html';
+
+  function load() {
+    const user = DB.getSession();
+    const bookings = DB.getMyBookings(user.id).reverse();
+    const list = document.getElementById('bookingList');
+    if (!bookings.length) {
+      list.innerHTML = `
+        <div style="text-align:center;padding:60px;color:var(--gray)">
+          <div style="font-size:4rem;margin-bottom:14px">📭</div>
+          <h3>No bookings yet!</h3>
+          <p style="margin-bottom:18px">Start exploring amazing travel packages</p>
+          <a href="packages.html"><button class="btn btn-primary btn-lg">✈️ Explore Packages</button></a>
+        </div>`;
+      return;
+    }
+    list.innerHTML = `<p style="color:var(--gray);margin-bottom:18px">${bookings.length} booking(s)</p>` +
+      bookings.map(b => `
+        <div class="booking-item">
+          <div>
+            <h3 style="font-size:1.1rem;font-weight:700;color:var(--dark);margin-bottom:5px">✈️ ${b.packageName}</h3>
+            <div style="display:flex;gap:14px;color:var(--gray);font-size:.84rem;flex-wrap:wrap">
+              <span>📍 ${b.destName}</span>
+              <span>📅 ${formatDate(b.travelDate)}</span>
+              <span>👥 ${b.persons} person(s)</span>
+              <span>🆔 #${b.id}</span>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+            <div style="text-align:right">
+              <div style="font-size:1.25rem;font-weight:800;color:var(--primary)">${formatCurrency(b.totalPrice)}</div>
+              <div style="margin-top:4px">${getStatusBadge(b.status)}</div>
+            </div>
+            ${b.status==='PENDING' ? `
+              <button class="btn btn-success btn-sm" onclick="location.href='payment.html?bookingId=${b.id}'">💳 Pay Now</button>
+              <button class="btn btn-danger btn-sm" onclick="cancel(${b.id})">✕ Cancel</button>
+            ` : ''}
+          </div>
+        </div>
+      `).join('');
+  }
+
+  function cancel(id) {
+    if (!confirm('Cancel this booking?')) return;
+    try {
+      DB.cancelBooking(id, DB.getSession().id);
+      showAlert('alertBox','✅ Booking cancelled.','success');
+      load();
+    } catch(err) {
+      showAlert('alertBox','❌ '+err.message,'error');
+    }
+  }
+
+  load();
+</script>
+</body>
+</html>

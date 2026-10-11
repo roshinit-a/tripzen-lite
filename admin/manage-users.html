@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Users – Admin</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+<div class="admin-layout">
+  <div class="sidebar">
+    <div class="brand">Trip<span>Zen</span> ✈️</div>
+    <nav>
+      <a href="admin-dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+      <a href="manage-users.html" class="active"><i class="fas fa-users"></i> Users</a>
+      <a href="manage-destinations.html"><i class="fas fa-map-marker-alt"></i> Destinations</a>
+      <a href="manage-hotels.html"><i class="fas fa-hotel"></i> Hotels</a>
+      <a href="manage-packages.html"><i class="fas fa-suitcase"></i> Packages</a>
+      <a href="manage-bookings.html"><i class="fas fa-calendar-check"></i> Bookings</a>
+      <a href="manage-payments.html"><i class="fas fa-credit-card"></i> Payments</a>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="btn btn-danger" style="width:100%;justify-content:center" onclick="DB.logout();location.href='../login.html'"><i class="fas fa-sign-out-alt"></i> Logout</button>
+    </div>
+  </div>
+  <div class="admin-main">
+    <h1 style="font-size:1.7rem;font-weight:800;color:var(--dark);margin-bottom:22px">👥 Manage Users</h1>
+    <div id="alertBox"></div>
+    <div class="data-table">
+      <div class="tbl-header">
+        <h3>All Registered Users</h3>
+        <input type="text" class="form-control" id="searchInput" placeholder="Search..." style="max-width:220px" oninput="render()">
+      </div>
+      <div id="tableBody"></div>
+    </div>
+  </div>
+</div>
+<script src="../js/db.js"></script>
+<script>
+  if (!DB.isLoggedIn() || !DB.isAdmin()) location.href = '../login.html';
+  function render() {
+    const q = document.getElementById('searchInput').value.toLowerCase();
+    const all = DB.getUsers().filter(u => u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q));
+    document.getElementById('tableBody').innerHTML = all.length ? `
+      <table>
+        <thead><tr><th>#ID</th><th>Name</th><th>Email</th><th>Phone</th><th>Role</th><th>Joined</th><th>Actions</th></tr></thead>
+        <tbody>${all.map(u => `
+          <tr>
+            <td>#${u.id}</td>
+            <td><strong>${u.name}</strong></td>
+            <td>${u.email}</td>
+            <td>${u.phone||'—'}</td>
+            <td>${u.role==='ADMIN'?'<span class="badge badge-primary">ADMIN</span>':'<span class="badge badge-success">USER</span>'}</td>
+            <td>${u.createdAt||'—'}</td>
+            <td>${u.role!=='ADMIN'?`<button class="btn btn-danger btn-sm" onclick="del(${u.id},'${u.name}')">🗑️ Delete</button>`:'<span style="color:#aaa;font-size:.83rem">Protected</span>'}</td>
+          </tr>
+        `).join('')}</tbody>
+      </table>
+    ` : '<p style="padding:22px;color:var(--gray)">No users found.</p>';
+  }
+  function del(id, name) {
+    if (!confirm(`Delete user "${name}"?`)) return;
+    DB.deleteUser(id);
+    showAlert('alertBox','✅ User deleted.','success'); render();
+  }
+  render();
+</script>
+</body>
+</html>

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hotels – TripZen</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+<nav class="navbar">
+  <a href="index.html" class="logo">Trip<span>Zen</span> ✈️</a>
+  <ul class="nav-links">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="destinations.html">Destinations</a></li>
+    <li><a href="hotels.html" class="active">Hotels</a></li>
+    <li><a href="packages.html">Packages</a></li>
+    <li><a href="my-bookings.html">My Bookings</a></li>
+  </ul>
+  <div class="nav-right">
+    <a href="login.html" id="navLogin"><button class="btn btn-outline">Login</button></a>
+    <a href="register.html" id="navRegister"><button class="btn btn-primary">Register</button></a>
+    <div id="navUser" style="display:none;gap:10px;align-items:center"></div>
+  </div>
+</nav>
+<div class="page-header"><h1>🏨 Hotels</h1><p>Find the perfect stay for your trip</p></div>
+
+<section class="section">
+  <div style="display:flex;gap:14px;background:white;padding:18px;border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:28px;flex-wrap:wrap;align-items:flex-end">
+    <div class="form-group" style="margin:0;flex:1;min-width:180px">
+      <label class="form-label">🔍 Search</label>
+      <input type="text" class="form-control" id="searchInput" placeholder="Hotel name or location..." oninput="render()">
+    </div>
+    <div class="form-group" style="margin:0">
+      <label class="form-label">⭐ Min Rating</label>
+      <select class="form-control" id="ratingFilter" onchange="render()">
+        <option value="0">All Ratings</option>
+        <option value="3">3+</option>
+        <option value="4">4+</option>
+        <option value="4.5">4.5+</option>
+      </select>
+    </div>
+    <div class="form-group" style="margin:0">
+      <label class="form-label">💰 Max Price/Night</label>
+      <select class="form-control" id="priceFilter" onchange="render()">
+        <option value="99999">All Prices</option>
+        <option value="3000">Under ₹3,000</option>
+        <option value="5000">Under ₹5,000</option>
+        <option value="10000">Under ₹10,000</option>
+      </select>
+    </div>
+    <span style="color:var(--gray);font-size:.88rem" id="countTxt"></span>
+  </div>
+  <div id="hotelList" style="display:flex;flex-direction:column;gap:18px"></div>
+</section>
+
+<footer style="background:var(--dark);color:#ccc;padding:22px 5%;text-align:center"><p>&copy; 2026 TripZen. All rights reserved.</p></footer>
+
+<script src="js/db.js"></script>
+<script>
+  const all = DB.getHotels();
+  const dests = DB.getDests();
+  function destName(id) { return (dests.find(d=>d.id===id)||{name:'India'}).name; }
+
+  function render() {
+    const q = document.getElementById('searchInput').value.toLowerCase();
+    const minR = parseFloat(document.getElementById('ratingFilter').value);
+    const maxP = parseFloat(document.getElementById('priceFilter').value);
+    const filtered = all.filter(h =>
+      (h.name.toLowerCase().includes(q) || h.location.toLowerCase().includes(q)) &&
+      h.rating >= minR && h.pricePerNight <= maxP
+    );
+    document.getElementById('countTxt').textContent = filtered.length + ' hotels found';
+    document.getElementById('hotelList').innerHTML = filtered.map(h => `
+      <div class="hotel-row">
+        <img src="${h.imageUrl}" alt="${h.name}" onerror="this.src='https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=300'">
+        <div class="hotel-body">
+          <div>
+            <h3 style="font-size:1.15rem;font-weight:700;color:var(--dark);margin-bottom:4px">🏨 ${h.name}</h3>
+            <p style="color:var(--gray);font-size:.88rem;margin-bottom:6px">📍 ${h.location} — ${destName(h.destId)}</p>
+            <p style="color:#ffc107;margin-bottom:6px">${renderStars(h.rating)} <small style="color:var(--gray)">(${h.rating})</small></p>
+            <p style="font-size:.85rem;color:var(--gray);margin-bottom:8px">${h.description}</p>
+            <p style="color:var(--success);font-size:.82rem;font-weight:600">✅ ${h.rooms} rooms available</p>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:14px">
+            <div><span class="price">${formatCurrency(h.pricePerNight)}</span><span class="price-small">/night</span></div>
+            <a href="packages.html?destId=${h.destId}"><button class="btn btn-primary btn-sm">View Packages</button></a>
+          </div>
+        </div>
+      </div>
+    `).join('') || '<p style="color:var(--gray)">No hotels found.</p>';
+  }
+  render();
+</script>
+</body>
+</html>

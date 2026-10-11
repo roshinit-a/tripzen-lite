@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Package Details – TripZen</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    .detail-layout { display:grid; grid-template-columns:2fr 1fr; gap:28px; max-width:1100px; margin:0 auto; padding:38px 5%; }
+    .detail-img { width:100%; height:400px; object-fit:cover; border-radius:var(--radius); margin-bottom:26px; }
+    .inc-item { display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid var(--gray-light); font-size:.92rem; }
+    .inc-item:last-child { border:none; }
+    .booking-sidebar { background:white; border-radius:var(--radius); box-shadow:var(--shadow); padding:26px; position:sticky; top:80px; }
+    .meta-row { display:flex; justify-content:space-between; padding:11px 0; border-bottom:1px solid var(--gray-light); font-size:.9rem; }
+    .meta-row:last-child { border:none; }
+    @media(max-width:768px) { .detail-layout{grid-template-columns:1fr} .detail-img{height:240px} }
+  </style>
+</head>
+<body>
+<nav class="navbar">
+  <a href="index.html" class="logo">Trip<span>Zen</span> ✈️</a>
+  <ul class="nav-links">
+    <li><a href="packages.html">← Packages</a></li>
+  </ul>
+  <div class="nav-right">
+    <a href="login.html" id="navLogin"><button class="btn btn-outline">Login</button></a>
+    <div id="navUser" style="display:none;gap:10px;align-items:center"></div>
+  </div>
+</nav>
+
+<div id="pageContent"><div class="spinner" style="margin-top:80px"></div></div>
+
+<footer style="background:var(--dark);color:#ccc;padding:22px 5%;text-align:center"><p>&copy; 2026 TripZen. All rights reserved.</p></footer>
+
+<script src="js/db.js"></script>
+<script>
+  const id = parseInt(new URLSearchParams(location.search).get('id'));
+  if (!id) location.href = 'packages.html';
+
+  const pkg = DB.getPackages(false).find(p => p.id === id);
+  if (!pkg) { document.getElementById('pageContent').innerHTML = '<p style="text-align:center;padding:60px;color:var(--gray)">Package not found.</p>'; }
+  else { render(); }
+
+  function render() {
+    const incList = pkg.inclusions.split(',');
+    document.getElementById('pageContent').innerHTML = `
+      <div class="detail-layout">
+        <div>
+          <a href="packages.html" style="color:var(--primary);font-weight:500;display:inline-block;margin-bottom:14px">← Back to Packages</a>
+          <img src="${pkg.imageUrl}" class="detail-img" alt="${pkg.name}" onerror="this.src='https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=800'">
+          <h1 style="font-size:2rem;font-weight:800;color:var(--dark);margin-bottom:8px">${pkg.name}</h1>
+          <p style="color:var(--gray);margin-bottom:22px">📍 ${pkg.destName} &nbsp;|&nbsp; 📅 ${pkg.days} Days &nbsp;|&nbsp; 👥 Max ${pkg.maxPersons} Persons</p>
+          <div style="background:white;border-radius:var(--radius);padding:22px;box-shadow:var(--shadow);margin-bottom:22px">
+            <h2 style="font-size:1.2rem;font-weight:700;margin-bottom:12px">About This Package</h2>
+            <p style="color:#555;line-height:1.8">${pkg.description}</p>
+          </div>
+          <div style="background:white;border-radius:var(--radius);padding:22px;box-shadow:var(--shadow)">
+            <h2 style="font-size:1.2rem;font-weight:700;margin-bottom:12px">What's Included ✅</h2>
+            ${incList.map(i => `<div class="inc-item"><span style="color:var(--success);font-size:1.1rem">✅</span><span>${i.trim()}</span></div>`).join('')}
+          </div>
+        </div>
+        <div>
+          <div class="booking-sidebar">
+            <h2 style="font-size:1.3rem;font-weight:800;margin-bottom:18px">📋 Book This Package</h2>
+            <div class="meta-row"><span style="color:var(--gray)">Price/Person</span><span style="font-weight:700;color:var(--primary)">${formatCurrency(pkg.price)}</span></div>
+            <div class="meta-row"><span style="color:var(--gray)">Duration</span><span style="font-weight:600">${pkg.days} Days</span></div>
+            <div class="meta-row"><span style="color:var(--gray)">Destination</span><span style="font-weight:600">${pkg.destName}</span></div>
+            <div class="form-group" style="margin-top:18px">
+              <label class="form-label">📅 Travel Date</label>
+              <input type="date" class="form-control" id="travelDate" min="${new Date().toISOString().split('T')[0]}">
+            </div>
+            <div class="form-group">
+              <label class="form-label">👥 Number of Persons</label>
+              <input type="number" class="form-control" id="persons" value="2" min="1" max="${pkg.maxPersons}" onchange="updateTotal()">
+            </div>
+            <div style="background:#f0f4ff;border-radius:var(--radius);padding:14px;margin-bottom:18px">
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <span style="font-weight:600;color:#555">Total Price:</span>
+                <span class="price" id="totalPrice">${formatCurrency(pkg.price*2)}</span>
+              </div>
+              <p style="font-size:.78rem;color:var(--gray);margin-top:4px">${formatCurrency(pkg.price)} × <span id="personDisp">2</span> persons</p>
+            </div>
+            <button class="btn btn-secondary btn-lg" style="width:100%;justify-content:center" onclick="goBook()">
+              🚀 Book Now
+            </button>
+            <p style="font-size:.78rem;color:var(--gray);text-align:center;margin-top:10px">Free cancellation before 48 hours</p>
+          </div>
+        </div>
+      </div>
+    `;
+    updateTotal();
+  }
+
+  function updateTotal() {
+    const n = parseInt(document.getElementById('persons')?.value)||1;
+    const el = document.getElementById('totalPrice');
+    const disp = document.getElementById('personDisp');
+    if(el) el.textContent = formatCurrency(pkg.price * n);
+    if(disp) disp.textContent = n;
+  }
+
+  function goBook() {
+    if (!DB.isLoggedIn()) { location.href = 'login.html'; return; }
+    const date = document.getElementById('travelDate')?.value;
+    const n = document.getElementById('persons')?.value;
+    if (!date) { alert('Please select a travel date!'); return; }
+    location.href = `booking.html?id=${id}&date=${date}&persons=${n}`;
+  }
+</script>
+</body>
+</html>

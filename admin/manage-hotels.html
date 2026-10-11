@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Hotels – Admin</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+<div class="admin-layout">
+  <div class="sidebar">
+    <div class="brand">Trip<span>Zen</span> ✈️</div>
+    <nav>
+      <a href="admin-dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+      <a href="manage-users.html"><i class="fas fa-users"></i> Users</a>
+      <a href="manage-destinations.html"><i class="fas fa-map-marker-alt"></i> Destinations</a>
+      <a href="manage-hotels.html" class="active"><i class="fas fa-hotel"></i> Hotels</a>
+      <a href="manage-packages.html"><i class="fas fa-suitcase"></i> Packages</a>
+      <a href="manage-bookings.html"><i class="fas fa-calendar-check"></i> Bookings</a>
+      <a href="manage-payments.html"><i class="fas fa-credit-card"></i> Payments</a>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="btn btn-danger" style="width:100%;justify-content:center" onclick="DB.logout();location.href='../login.html'"><i class="fas fa-sign-out-alt"></i> Logout</button>
+    </div>
+  </div>
+  <div class="admin-main">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:22px">
+      <h1 style="font-size:1.7rem;font-weight:800;color:var(--dark)">🏨 Manage Hotels</h1>
+      <button class="btn btn-primary" onclick="openModal()"><i class="fas fa-plus"></i> Add Hotel</button>
+    </div>
+    <div id="alertBox"></div>
+    <div class="data-table">
+      <div class="tbl-header"><h3>All Hotels</h3>
+        <input type="text" class="form-control" id="searchInput" placeholder="Search..." style="max-width:220px" oninput="render()">
+      </div>
+      <div id="tableBody"></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <h2 id="modalTitle">➕ Add Hotel</h2>
+    <form onsubmit="save(event)">
+      <input type="hidden" id="editId">
+      <div class="form-group"><label class="form-label">Hotel Name *</label><input type="text" class="form-control" id="fName" required placeholder="E.g. Grand Resort"></div>
+      <div class="grid-2">
+        <div class="form-group"><label class="form-label">Location *</label><input type="text" class="form-control" id="fLoc" required placeholder="E.g. Baga Beach"></div>
+        <div class="form-group"><label class="form-label">Destination *</label><select class="form-control" id="fDest" required></select></div>
+      </div>
+      <div class="grid-2">
+        <div class="form-group"><label class="form-label">Price/Night (₹) *</label><input type="number" class="form-control" id="fPrice" required placeholder="3000"></div>
+        <div class="form-group"><label class="form-label">Rating (1–5)</label><input type="number" class="form-control" id="fRating" min="1" max="5" step="0.1" placeholder="4.0"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Available Rooms</label><input type="number" class="form-control" id="fRooms" placeholder="10"></div>
+      <div class="form-group"><label class="form-label">Description</label><textarea class="form-control" id="fDesc" rows="2"></textarea></div>
+      <div class="form-group"><label class="form-label">Image URL</label><input type="text" class="form-control" id="fImg" placeholder="https://..."></div>
+      <div style="display:flex;gap:12px;margin-top:8px">
+        <button type="submit" class="btn btn-primary" style="flex:1;justify-content:center"><i class="fas fa-save"></i> Save</button>
+        <button type="button" class="btn btn-outline" onclick="closeModal()" style="flex:1;justify-content:center">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="../js/db.js"></script>
+<script>
+  if (!DB.isLoggedIn() || !DB.isAdmin()) location.href = '../login.html';
+  const dests = DB.getDests();
+  document.getElementById('fDest').innerHTML = dests.map(d => `<option value="${d.id}">${d.name}</option>`).join('');
+
+  function render() {
+    const q = document.getElementById('searchInput').value.toLowerCase();
+    const all = DB.getHotels().filter(h => h.name.toLowerCase().includes(q) || h.location.toLowerCase().includes(q));
+    document.getElementById('tableBody').innerHTML = all.length ? `
+      <table>
+        <thead><tr><th>#</th><th>Name</th><th>Location</th><th>Destination</th><th>Price/Night</th><th>Rating</th><th>Actions</th></tr></thead>
+        <tbody>${all.map(h => `
+          <tr>
+            <td>#${h.id}</td>
+            <td><strong>${h.name}</strong></td>
+            <td>${h.location}</td>
+            <td>${(dests.find(d=>d.id===h.destId)||{name:'—'}).name}</td>
+            <td>${formatCurrency(h.pricePerNight)}</td>
+            <td>⭐ ${h.rating}</td>
+            <td>
+              <button class="btn btn-sm" style="background:#cce5ff;color:#004085" onclick="edit(${h.id})">✏️ Edit</button>
+              <button class="btn btn-danger btn-sm" style="margin-left:5px" onclick="del(${h.id})">🗑️</button>
+            </td>
+          </tr>
+        `).join('')}</tbody>
+      </table>
+    ` : '<p style="padding:22px;color:var(--gray)">No hotels found.</p>';
+  }
+
+  function openModal(h=null) {
+    document.getElementById('modalTitle').textContent = h ? '✏️ Edit Hotel' : '➕ Add Hotel';
+    document.getElementById('editId').value   = h?.id||'';
+    document.getElementById('fName').value    = h?.name||'';
+    document.getElementById('fLoc').value     = h?.location||'';
+    document.getElementById('fDest').value    = h?.destId||dests[0]?.id;
+    document.getElementById('fPrice').value   = h?.pricePerNight||'';
+    document.getElementById('fRating').value  = h?.rating||'';
+    document.getElementById('fRooms').value   = h?.rooms||'';
+    document.getElementById('fDesc').value    = h?.description||'';
+    document.getElementById('fImg').value     = h?.imageUrl||'';
+    document.getElementById('modalOverlay').classList.add('show');
+  }
+  function closeModal() { document.getElementById('modalOverlay').classList.remove('show'); }
+  function edit(id) { openModal(DB.getHotels().find(h=>h.id===id)); }
+  function save(e) {
+    e.preventDefault();
+    const id = document.getElementById('editId').value;
+    const data = { name:document.getElementById('fName').value, location:document.getElementById('fLoc').value, destId:parseInt(document.getElementById('fDest').value), pricePerNight:parseFloat(document.getElementById('fPrice').value), rating:parseFloat(document.getElementById('fRating').value), rooms:parseInt(document.getElementById('fRooms').value)||10, description:document.getElementById('fDesc').value, imageUrl:document.getElementById('fImg').value };
+    if(id) DB.updateHotel(parseInt(id),data);
+    else   DB.addHotel(data);
+    showAlert('alertBox','✅ Hotel saved!','success'); closeModal(); render();
+  }
+  function del(id) {
+    if(!confirm('Delete?')) return;
+    DB.deleteHotel(id); showAlert('alertBox','✅ Deleted.','success'); render();
+  }
+  render();
+</script>
+</body>
+</html>

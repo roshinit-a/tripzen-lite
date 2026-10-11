@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Booking Confirmed! – TripZen</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body style="background:#f0f4ff">
+<nav class="navbar">
+  <a href="index.html" class="logo">Trip<span>Zen</span> ✈️</a>
+  <div class="nav-right">
+    <div id="navUser" style="display:none;gap:10px;align-items:center"></div>
+  </div>
+</nav>
+
+<div class="confirm-page">
+  <div style="font-size:3.5rem;margin-bottom:14px;text-align:center;animation:popIn .5s ease">🎉</div>
+  <div class="confirm-card">
+    <div class="success-icon">✅</div>
+    <h1 style="font-size:2rem;font-weight:800;color:var(--dark);margin-bottom:7px">Booking Confirmed!</h1>
+    <p style="color:var(--gray);margin-bottom:26px">Your trip has been booked successfully. Have a wonderful journey!</p>
+
+    <div id="details" style="text-align:left;margin-bottom:22px"></div>
+
+    <div style="background:#d4edda;border-radius:var(--radius);padding:14px;margin-bottom:22px;color:#155724">
+      <strong>✅ Payment Successful!</strong><br>
+      <span style="font-size:.88rem">Transaction ID: <strong id="txnDisp">—</strong></span>
+    </div>
+
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+      <a href="my-bookings.html"><button class="btn btn-primary btn-lg">📋 My Bookings</button></a>
+      <a href="packages.html"><button class="btn btn-outline btn-lg">✈️ Book Another</button></a>
+      <a href="index.html"><button class="btn btn-outline">🏠 Home</button></a>
+    </div>
+  </div>
+</div>
+
+<footer style="background:var(--dark);color:#ccc;padding:22px 5%;text-align:center;margin-top:40px"><p>&copy; 2026 TripZen. All rights reserved.</p></footer>
+
+<script src="js/db.js"></script>
+<script>
+  if (!DB.isLoggedIn()) location.href = 'login.html';
+  const params = new URLSearchParams(location.search);
+  const bookingId = parseInt(params.get('bookingId'));
+  const txn = params.get('txn');
+  if (txn) document.getElementById('txnDisp').textContent = txn;
+
+  const booking = DB.getBookings().find(b => b.id === bookingId);
+  if (booking) {
+    document.getElementById('details').innerHTML = `
+      <div class="detail-row"><span style="color:var(--gray)">Booking ID</span><span style="font-weight:600">#${booking.id}</span></div>
+      <div class="detail-row"><span style="color:var(--gray)">Package</span><span style="font-weight:600">${booking.packageName}</span></div>
+      <div class="detail-row"><span style="color:var(--gray)">Destination</span><span style="font-weight:600">${booking.destName}</span></div>
+      <div class="detail-row"><span style="color:var(--gray)">Travel Date</span><span style="font-weight:600">${formatDate(booking.travelDate)}</span></div>
+      <div class="detail-row"><span style="color:var(--gray)">Persons</span><span style="font-weight:600">${booking.persons}</span></div>
+      <div class="detail-row"><span style="color:var(--gray)">Amount Paid</span><span style="font-weight:800;color:var(--primary);font-size:1.15rem">${formatCurrency(booking.totalPrice)}</span></div>
+      <div class="detail-row"><span style="color:var(--gray)">Status</span><span>${getStatusBadge(booking.status)}</span></div>
+    `;
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payment – TripZen</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+<nav class="navbar">
+  <a href="index.html" class="logo">Trip<span>Zen</span> ✈️</a>
+  <ul class="nav-links"><li><a href="my-bookings.html">← My Bookings</a></li></ul>
+  <div id="navUser" style="display:none;gap:10px;align-items:center"></div>
+</nav>
+
+<div class="narrow-page">
+  <div id="alertBox"></div>
+  <div style="background:white;border-radius:var(--radius);box-shadow:var(--shadow);padding:32px">
+    <h1 style="font-size:1.8rem;font-weight:800;color:var(--dark);margin-bottom:5px">💳 Secure Payment</h1>
+    <p style="color:var(--gray);margin-bottom:22px">Complete payment to confirm your booking</p>
+
+    <div id="bookSummary" class="booking-summary"></div>
+
+    <h3 style="font-weight:700;color:var(--dark);margin-bottom:14px">Choose Payment Method</h3>
+
+    <label class="pay-method selected" id="lbl-UPI">
+      <input type="radio" name="method" value="UPI" checked onchange="selectMethod(this)">
+      <span style="font-size:1.7rem">📱</span>
+      <div><div style="font-weight:600">UPI Payment</div><div style="font-size:.8rem;color:var(--gray)">Google Pay, PhonePe, Paytm, BHIM</div></div>
+    </label>
+    <label class="pay-method" id="lbl-CARD">
+      <input type="radio" name="method" value="CARD" onchange="selectMethod(this)">
+      <span style="font-size:1.7rem">💳</span>
+      <div><div style="font-weight:600">Credit / Debit Card</div><div style="font-size:.8rem;color:var(--gray)">Visa, Mastercard, RuPay</div></div>
+    </label>
+    <label class="pay-method" id="lbl-NET_BANKING">
+      <input type="radio" name="method" value="NET_BANKING" onchange="selectMethod(this)">
+      <span style="font-size:1.7rem">🏦</span>
+      <div><div style="font-weight:600">Net Banking</div><div style="font-size:.8rem;color:var(--gray)">SBI, HDFC, ICICI, Axis and more</div></div>
+    </label>
+
+    <div style="text-align:center;margin:18px 0">
+      <span style="background:#d4edda;color:#155724;padding:9px 20px;border-radius:50px;font-size:.83rem;font-weight:600">
+        🔒 100% Secure & Encrypted Payment
+      </span>
+    </div>
+
+    <button class="btn btn-success btn-lg" id="payBtn" style="width:100%;justify-content:center;font-size:1.05rem" onclick="doPay()">
+      <i class="fas fa-lock"></i> Pay Now — <span id="payAmtDisp"></span>
+    </button>
+    <p style="font-size:.78rem;color:var(--gray);text-align:center;margin-top:12px">This is a simulated payment for demonstration</p>
+  </div>
+</div>
+
+<footer style="background:var(--dark);color:#ccc;padding:22px 5%;text-align:center;margin-top:40px"><p>&copy; 2026 TripZen. All rights reserved.</p></footer>
+
+<script src="js/db.js"></script>
+<script>
+  if (!DB.isLoggedIn()) location.href = 'login.html';
+
+  const bookingId = parseInt(new URLSearchParams(location.search).get('bookingId'));
+  if (!bookingId) location.href = 'my-bookings.html';
+
+  const booking = DB.getBookings().find(b => b.id === bookingId);
+  if (!booking) { alert('Booking not found!'); location.href = 'my-bookings.html'; }
+
+  document.getElementById('bookSummary').innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
+      <div>
+        <p style="opacity:.78;font-size:.82rem;margin-bottom:3px">Booking #${booking.id}</p>
+        <h3 style="font-size:1.2rem;font-weight:800;margin-bottom:3px">✈️ ${booking.packageName}</h3>
+        <p style="opacity:.85;font-size:.87rem">📍 ${booking.destName} &nbsp;•&nbsp; 📅 ${formatDate(booking.travelDate)} &nbsp;•&nbsp; 👥 ${booking.persons} Person(s)</p>
+      </div>
+      <div style="text-align:right">
+        <p style="opacity:.78;font-size:.82rem">Total Amount</p>
+        <p style="font-size:2rem;font-weight:800">${formatCurrency(booking.totalPrice)}</p>
+      </div>
+    </div>
+  `;
+  document.getElementById('payAmtDisp').textContent = formatCurrency(booking.totalPrice);
+
+  function selectMethod(radio) {
+    document.querySelectorAll('.pay-method').forEach(el => el.classList.remove('selected'));
+    radio.closest('.pay-method').classList.add('selected');
+  }
+
+  function doPay() {
+    const method = document.querySelector('input[name="method"]:checked').value;
+    const btn = document.getElementById('payBtn');
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+    btn.disabled = true;
+    setTimeout(() => {
+      try {
+        const payment = DB.processPayment(bookingId, method);
+        location.href = `booking-confirmation.html?bookingId=${bookingId}&txn=${payment.transactionId}`;
+      } catch(err) {
+        showAlert('alertBox','❌ '+err.message,'error');
+        btn.innerHTML = '<i class="fas fa-lock"></i> Pay Now';
+        btn.disabled = false;
+      }
+    }, 1500);
+  }
+</script>
+</body>
+</html>

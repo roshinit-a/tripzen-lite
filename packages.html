@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Packages – TripZen</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+<nav class="navbar">
+  <a href="index.html" class="logo">Trip<span>Zen</span> ✈️</a>
+  <ul class="nav-links">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="destinations.html">Destinations</a></li>
+    <li><a href="hotels.html">Hotels</a></li>
+    <li><a href="packages.html" class="active">Packages</a></li>
+    <li><a href="my-bookings.html">My Bookings</a></li>
+  </ul>
+  <div class="nav-right">
+    <a href="login.html" id="navLogin"><button class="btn btn-outline">Login</button></a>
+    <a href="register.html" id="navRegister"><button class="btn btn-primary">Register</button></a>
+    <div id="navUser" style="display:none;gap:10px;align-items:center"></div>
+  </div>
+</nav>
+<div class="page-header"><h1>✈️ Travel Packages</h1><p>All-inclusive packages at the best prices</p></div>
+
+<section class="section">
+  <div style="display:flex;gap:14px;background:white;padding:18px;border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:28px;flex-wrap:wrap;align-items:flex-end">
+    <div class="form-group" style="margin:0;flex:1;min-width:180px">
+      <label class="form-label">🔍 Search</label>
+      <input type="text" class="form-control" id="searchInput" placeholder="Package name or destination..." oninput="render()">
+    </div>
+    <div class="form-group" style="margin:0">
+      <label class="form-label">⏱ Duration</label>
+      <select class="form-control" id="durFilter" onchange="render()">
+        <option value="99">All Durations</option>
+        <option value="3">Up to 3 Days</option>
+        <option value="5">Up to 5 Days</option>
+        <option value="7">Up to 7 Days</option>
+      </select>
+    </div>
+    <div class="form-group" style="margin:0">
+      <label class="form-label">💰 Max Price</label>
+      <select class="form-control" id="priceFilter" onchange="render()">
+        <option value="999999">All Prices</option>
+        <option value="15000">Under ₹15,000</option>
+        <option value="20000">Under ₹20,000</option>
+        <option value="30000">Under ₹30,000</option>
+      </select>
+    </div>
+    <span style="color:var(--gray);font-size:.88rem" id="countTxt"></span>
+  </div>
+  <div class="grid-3" id="pkgGrid"></div>
+</section>
+
+<footer style="background:var(--dark);color:#ccc;padding:22px 5%;text-align:center"><p>&copy; 2026 TripZen. All rights reserved.</p></footer>
+
+<script src="js/db.js"></script>
+<script>
+  // Pre-filter from URL params
+  const params = new URLSearchParams(location.search);
+  if (params.get('q'))      document.getElementById('searchInput').value = params.get('q');
+  const preDestId = params.get('destId') ? parseInt(params.get('destId')) : null;
+
+  let all = DB.getPackages();
+  if (preDestId) all = all.filter(p => p.destId === preDestId);
+
+  function render() {
+    const q = document.getElementById('searchInput').value.toLowerCase();
+    const dur = parseInt(document.getElementById('durFilter').value);
+    const maxP = parseFloat(document.getElementById('priceFilter').value);
+    const filtered = all.filter(p =>
+      (p.name.toLowerCase().includes(q) || p.destName.toLowerCase().includes(q)) &&
+      p.days <= dur && p.price <= maxP
+    );
+    document.getElementById('countTxt').textContent = filtered.length + ' packages found';
+    document.getElementById('pkgGrid').innerHTML = filtered.map(p => `
+      <div class="card">
+        <img src="${p.imageUrl}" alt="${p.name}" class="card-img" onerror="this.src='https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=600'">
+        <div class="card-body">
+          <h3 class="card-title">${p.name}</h3>
+          <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px">
+            <span class="meta-tag">📍 ${p.destName}</span>
+            <span class="meta-tag">📅 ${p.days} Days</span>
+          </div>
+          <p class="card-text">${p.description.substring(0,90)}...</p>
+          <p style="font-size:.78rem;color:var(--success);margin-bottom:12px">✅ ${p.inclusions.split(',').slice(0,3).join(' • ')}</p>
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div><span class="price">${formatCurrency(p.price)}</span><br><small class="price-small">per person</small></div>
+            <a href="package-details.html?id=${p.id}"><button class="btn btn-primary btn-sm">View Details</button></a>
+          </div>
+        </div>
+      </div>
+    `).join('') || '<p style="color:var(--gray)">No packages found. Try different filters.</p>';
+  }
+  render();
+</script>
+</body>
+</html>

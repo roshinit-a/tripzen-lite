@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Book Trip – TripZen</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+<nav class="navbar">
+  <a href="index.html" class="logo">Trip<span>Zen</span> ✈️</a>
+  <ul class="nav-links"><li><a href="packages.html">← Packages</a></li></ul>
+  <div id="navUser" style="display:none;gap:10px;align-items:center"></div>
+</nav>
+
+<div class="narrow-page">
+  <div id="alertBox"></div>
+  <div style="background:white;border-radius:var(--radius);box-shadow:var(--shadow);padding:32px">
+    <h1 style="font-size:1.8rem;font-weight:800;color:var(--dark);margin-bottom:5px">🎒 Book Your Trip</h1>
+    <p style="color:var(--gray);margin-bottom:22px">Complete the form below to create your booking</p>
+
+    <div class="booking-summary" id="pkgSummary"></div>
+
+    <form onsubmit="doBook(event)">
+      <div class="grid-2">
+        <div class="form-group">
+          <label class="form-label">📅 Travel Date</label>
+          <input type="date" class="form-control" id="travelDate" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">👥 Number of Persons</label>
+          <input type="number" class="form-control" id="persons" value="2" min="1" max="20" required onchange="updateTotal()">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">📝 Special Requests (Optional)</label>
+        <textarea class="form-control" id="special" rows="3" placeholder="Dietary requirements, special arrangements..."></textarea>
+      </div>
+      <div style="background:#f0f4ff;border-radius:var(--radius);padding:18px;margin:18px 0;border-left:4px solid var(--primary)">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <p style="color:var(--gray);font-size:.88rem;margin-bottom:4px" id="breakdown">₹0 × 2 persons</p>
+            <p style="font-weight:700;color:#555">Total Amount</p>
+          </div>
+          <div class="total-price-big" id="totalDisp">₹0</div>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-secondary btn-lg" id="bookBtn" style="width:100%;justify-content:center">
+        <i class="fas fa-check-circle"></i> Confirm Booking
+      </button>
+    </form>
+  </div>
+</div>
+
+<footer style="background:var(--dark);color:#ccc;padding:22px 5%;text-align:center;margin-top:40px"><p>&copy; 2026 TripZen. All rights reserved.</p></footer>
+
+<script src="js/db.js"></script>
+<script>
+  if (!DB.isLoggedIn()) location.href = 'login.html';
+
+  const params = new URLSearchParams(location.search);
+  const pkgId  = parseInt(params.get('id'));
+  const preDate = params.get('date');
+  const preN    = params.get('persons');
+
+  if (!pkgId) location.href = 'packages.html';
+  const pkg = DB.getPackages(false).find(p => p.id === pkgId);
+  if (!pkg) location.href = 'packages.html';
+
+  // Fill
+  if (preDate) document.getElementById('travelDate').value = preDate;
+  else document.getElementById('travelDate').min = new Date().toISOString().split('T')[0];
+  if (preN)   document.getElementById('persons').value = preN;
+
+  document.getElementById('pkgSummary').innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
+      <div>
+        <h3 style="font-size:1.3rem;font-weight:800;margin-bottom:4px">✈️ ${pkg.name}</h3>
+        <p style="opacity:.85;font-size:.88rem">📍 ${pkg.destName} &nbsp;•&nbsp; 📅 ${pkg.days} Days</p>
+      </div>
+      <div style="text-align:right">
+        <p style="opacity:.8;font-size:.82rem">Price per Person</p>
+        <p style="font-size:1.8rem;font-weight:800">${formatCurrency(pkg.price)}</p>
+      </div>
+    </div>
+  `;
+  updateTotal();
+
+  function updateTotal() {
+    const n = parseInt(document.getElementById('persons').value)||1;
+    document.getElementById('totalDisp').textContent = formatCurrency(pkg.price * n);
+    document.getElementById('breakdown').textContent = `${formatCurrency(pkg.price)} × ${n} person${n>1?'s':''}`;
+  }
+
+  function doBook(e) {
+    e.preventDefault();
+    const btn = document.getElementById('bookBtn');
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating booking...';
+    btn.disabled = true;
+    setTimeout(() => {
+      try {
+        const user = DB.getSession();
+        const booking = DB.createBooking(
+          user.id, pkgId,
+          document.getElementById('travelDate').value,
+          parseInt(document.getElementById('persons').value),
+          document.getElementById('special').value
+        );
+        showAlert('alertBox','✅ Booking created! Taking you to payment...','success');
+        setTimeout(() => location.href = `payment.html?bookingId=${booking.id}`, 1200);
+      } catch(err) {
+        showAlert('alertBox','❌ '+err.message,'error');
+        btn.innerHTML = '<i class="fas fa-check-circle"></i> Confirm Booking';
+        btn.disabled = false;
+      }
+    }, 700);
+  }
+</script>
+</body>
+</html>

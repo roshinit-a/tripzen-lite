@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Payments – Admin</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+<div class="admin-layout">
+  <div class="sidebar">
+    <div class="brand">Trip<span>Zen</span> ✈️</div>
+    <nav>
+      <a href="admin-dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+      <a href="manage-users.html"><i class="fas fa-users"></i> Users</a>
+      <a href="manage-destinations.html"><i class="fas fa-map-marker-alt"></i> Destinations</a>
+      <a href="manage-hotels.html"><i class="fas fa-hotel"></i> Hotels</a>
+      <a href="manage-packages.html"><i class="fas fa-suitcase"></i> Packages</a>
+      <a href="manage-bookings.html"><i class="fas fa-calendar-check"></i> Bookings</a>
+      <a href="manage-payments.html" class="active"><i class="fas fa-credit-card"></i> Payments</a>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="btn btn-danger" style="width:100%;justify-content:center" onclick="DB.logout();location.href='../login.html'"><i class="fas fa-sign-out-alt"></i> Logout</button>
+    </div>
+  </div>
+  <div class="admin-main">
+    <h1 style="font-size:1.7rem;font-weight:800;color:var(--dark);margin-bottom:22px">💳 Payment Records</h1>
+    <div class="data-table">
+      <div class="tbl-header">
+        <h3>All Payments</h3>
+        <input type="text" class="form-control" id="searchInput" placeholder="Search TXN..." style="max-width:220px" oninput="render()">
+      </div>
+      <div id="tableBody"></div>
+    </div>
+  </div>
+</div>
+<script src="../js/db.js"></script>
+<script>
+  if (!DB.isLoggedIn() || !DB.isAdmin()) location.href = '../login.html';
+  const bookings = DB.getBookings();
+
+  function render() {
+    const q = document.getElementById('searchInput').value.toLowerCase();
+    const all = DB.getPayments().filter(p => (p.transactionId||'').toLowerCase().includes(q) || (p.method||'').toLowerCase().includes(q));
+    document.getElementById('tableBody').innerHTML = all.length ? `
+      <table>
+        <thead><tr><th>#ID</th><th>Booking</th><th>Package</th><th>Amount</th><th>Method</th><th>Transaction ID</th><th>Status</th><th>Paid At</th></tr></thead>
+        <tbody>${all.reverse().map(p => {
+          const b = bookings.find(x=>x.id===p.bookingId)||{};
+          return `<tr>
+            <td><strong>#${p.id}</strong></td>
+            <td>#${p.bookingId}</td>
+            <td>${b.packageName||'—'}</td>
+            <td><strong>${formatCurrency(p.amount)}</strong></td>
+            <td>${p.method}</td>
+            <td><code style="background:#f0f4ff;padding:2px 8px;border-radius:6px;font-size:.8rem">${p.transactionId}</code></td>
+            <td><span class="badge badge-success">${p.status}</span></td>
+            <td>${formatDate(p.paidAt)}</td>
+          </tr>`;
+        }).join('')}</tbody>
+      </table>
+    ` : '<p style="padding:22px;color:var(--gray)">No payments yet.</p>';
+  }
+  render();
+</script>
+</body>
+</html>

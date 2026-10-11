@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Packages – Admin</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+<div class="admin-layout">
+  <div class="sidebar">
+    <div class="brand">Trip<span>Zen</span> ✈️</div>
+    <nav>
+      <a href="admin-dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+      <a href="manage-users.html"><i class="fas fa-users"></i> Users</a>
+      <a href="manage-destinations.html"><i class="fas fa-map-marker-alt"></i> Destinations</a>
+      <a href="manage-hotels.html"><i class="fas fa-hotel"></i> Hotels</a>
+      <a href="manage-packages.html" class="active"><i class="fas fa-suitcase"></i> Packages</a>
+      <a href="manage-bookings.html"><i class="fas fa-calendar-check"></i> Bookings</a>
+      <a href="manage-payments.html"><i class="fas fa-credit-card"></i> Payments</a>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="btn btn-danger" style="width:100%;justify-content:center" onclick="DB.logout();location.href='../login.html'"><i class="fas fa-sign-out-alt"></i> Logout</button>
+    </div>
+  </div>
+  <div class="admin-main">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:22px">
+      <h1 style="font-size:1.7rem;font-weight:800;color:var(--dark)">✈️ Manage Packages</h1>
+      <button class="btn btn-primary" onclick="openModal()"><i class="fas fa-plus"></i> Add Package</button>
+    </div>
+    <div id="alertBox"></div>
+    <div class="data-table">
+      <div class="tbl-header">
+        <h3>All Travel Packages</h3>
+        <input type="text" class="form-control" id="searchInput" placeholder="Search..." style="max-width:220px" oninput="render()">
+      </div>
+      <div id="tableBody"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <h2 id="modalTitle">➕ Add Package</h2>
+    <div id="modalAlert"></div>
+    <form onsubmit="save(event)">
+      <input type="hidden" id="editId">
+      <div class="form-group"><label class="form-label">Package Name *</label><input type="text" class="form-control" id="fName" required placeholder="E.g. Goa Beach Explorer"></div>
+      <div class="grid-2">
+        <div class="form-group">
+          <label class="form-label">Destination *</label>
+          <select class="form-control" id="fDest" required></select>
+        </div>
+        <div class="form-group"><label class="form-label">Duration (Days) *</label><input type="number" class="form-control" id="fDays" required min="1" placeholder="4"></div>
+      </div>
+      <div class="grid-2">
+        <div class="form-group"><label class="form-label">Price (₹) *</label><input type="number" class="form-control" id="fPrice" required min="0" placeholder="15000"></div>
+        <div class="form-group"><label class="form-label">Max Persons</label><input type="number" class="form-control" id="fMax" placeholder="10" min="1"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Description</label><textarea class="form-control" id="fDesc" rows="3" placeholder="Describe the package..."></textarea></div>
+      <div class="form-group"><label class="form-label">Image URL</label><input type="text" class="form-control" id="fImg" placeholder="https://..."></div>
+      <div class="form-group"><label class="form-label">Inclusions (comma-separated)</label><input type="text" class="form-control" id="fInc" placeholder="Hotel Stay,Breakfast,Sightseeing"></div>
+      <div style="display:flex;gap:12px;margin-top:8px">
+        <button type="submit" class="btn btn-primary" style="flex:1;justify-content:center"><i class="fas fa-save"></i> Save</button>
+        <button type="button" class="btn btn-outline" onclick="closeModal()" style="flex:1;justify-content:center">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="../js/db.js"></script>
+<script>
+  if (!DB.isLoggedIn() || !DB.isAdmin()) location.href = '../login.html';
+
+  // Populate destination dropdown
+  const dests = DB.getDests();
+  document.getElementById('fDest').innerHTML = dests.map(d => `<option value="${d.id}">${d.name}</option>`).join('');
+
+  function render() {
+    const q = document.getElementById('searchInput').value.toLowerCase();
+    const all = DB.getPackages(false).filter(p => p.name.toLowerCase().includes(q) || p.destName.toLowerCase().includes(q));
+    document.getElementById('tableBody').innerHTML = all.length ? `
+      <table>
+        <thead><tr><th>#</th><th>Name</th><th>Destination</th><th>Days</th><th>Price</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody>${all.map(p => `
+          <tr>
+            <td>#${p.id}</td>
+            <td><strong>${p.name}</strong></td>
+            <td>📍 ${p.destName}</td>
+            <td>${p.days} Days</td>
+            <td><strong>${formatCurrency(p.price)}</strong></td>
+            <td>${p.active ? '<span class="badge badge-success">Active</span>' : '<span class="badge badge-danger">Inactive</span>'}</td>
+            <td>
+              <button class="btn btn-sm" style="background:#cce5ff;color:#004085" onclick="edit(${p.id})">✏️ Edit</button>
+              <button class="btn btn-danger btn-sm" style="margin-left:5px" onclick="del(${p.id})">🗑️</button>
+            </td>
+          </tr>
+        `).join('')}</tbody>
+      </table>
+    ` : '<p style="padding:22px;color:var(--gray)">No packages found.</p>';
+  }
+
+  function openModal(p = null) {
+    document.getElementById('modalTitle').textContent = p ? '✏️ Edit Package' : '➕ Add Package';
+    document.getElementById('editId').value = p?.id || '';
+    document.getElementById('fName').value  = p?.name || '';
+    document.getElementById('fDest').value  = p?.destId || dests[0]?.id;
+    document.getElementById('fDays').value  = p?.days || '';
+    document.getElementById('fPrice').value = p?.price || '';
+    document.getElementById('fMax').value   = p?.maxPersons || 10;
+    document.getElementById('fDesc').value  = p?.description || '';
+    document.getElementById('fImg').value   = p?.imageUrl || '';
+    document.getElementById('fInc').value   = p?.inclusions || '';
+    document.getElementById('modalOverlay').classList.add('show');
+  }
+  function closeModal() { document.getElementById('modalOverlay').classList.remove('show'); }
+  function edit(id) { openModal(DB.getPackages(false).find(p => p.id === id)); }
+
+  function save(e) {
+    e.preventDefault();
+    const id = document.getElementById('editId').value;
+    const destId = parseInt(document.getElementById('fDest').value);
+    const dest   = dests.find(d => d.id === destId);
+    const data = {
+      name: document.getElementById('fName').value,
+      destId, destName: dest?.name || '',
+      days:  parseInt(document.getElementById('fDays').value),
+      price: parseFloat(document.getElementById('fPrice').value),
+      maxPersons: parseInt(document.getElementById('fMax').value)||10,
+      description: document.getElementById('fDesc').value,
+      imageUrl: document.getElementById('fImg').value,
+      inclusions: document.getElementById('fInc').value,
+    };
+    if (id) DB.updatePackage(parseInt(id), data);
+    else    DB.addPackage(data);
+    showAlert('alertBox', '✅ Package saved!', 'success');
+    closeModal(); render();
+  }
+
+  function del(id) {
+    if (!confirm('Delete this package?')) return;
+    DB.deletePackage(id);
+    showAlert('alertBox','✅ Package deleted.','success'); render();
+  }
+
+  render();
+</script>
+</body>
+</html>

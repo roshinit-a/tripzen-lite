@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register – TripZen</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body class="auth-page">
+<div class="auth-card" style="max-width:500px">
+  <div style="text-align:center;margin-bottom:28px">
+    <a href="index.html" style="font-size:1.9rem;font-weight:800;color:var(--primary)">Trip<span style="color:var(--secondary)">Zen</span> ✈️</a>
+  </div>
+  <h2>Create Account 🚀</h2>
+  <p class="subtitle">Join TripZen and start your adventure</p>
+  <div id="alertBox"></div>
+  <form onsubmit="doRegister(event)">
+    <div class="form-group">
+      <label class="form-label"><i class="fas fa-user"></i> Full Name</label>
+      <input type="text" class="form-control" id="name" placeholder="Your full name" required minlength="2">
+    </div>
+    <div class="form-group">
+      <label class="form-label"><i class="fas fa-envelope"></i> Email Address</label>
+      <input type="email" class="form-control" id="email" placeholder="your@email.com" required>
+    </div>
+    <div class="form-group">
+      <label class="form-label"><i class="fas fa-phone"></i> Phone Number</label>
+      <input type="tel" class="form-control" id="phone" placeholder="+91 9876543210">
+    </div>
+    <div class="form-group">
+      <label class="form-label"><i class="fas fa-lock"></i> Password</label>
+      <div style="position:relative;display:flex;align-items:center">
+        <input type="password" class="form-control" id="password" placeholder="Min 4 characters" required minlength="4" style="padding-right:45px">
+        <button type="button" onclick="togglePassword('password', this)" title="Show/Hide Password" style="position:absolute;right:12px;background:none;border:none;cursor:pointer;color:var(--gray);font-size:1.05rem;padding:4px;display:flex;align-items:center;justify-content:center">
+          <i class="fas fa-eye"></i>
+        </button>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label"><i class="fas fa-lock"></i> Confirm Password</label>
+      <div style="position:relative;display:flex;align-items:center">
+        <input type="password" class="form-control" id="confirmPassword" placeholder="Repeat password" required style="padding-right:45px">
+        <button type="button" onclick="togglePassword('confirmPassword', this)" title="Show/Hide Password" style="position:absolute;right:12px;background:none;border:none;cursor:pointer;color:var(--gray);font-size:1.05rem;padding:4px;display:flex;align-items:center;justify-content:center">
+          <i class="fas fa-eye"></i>
+        </button>
+      </div>
+    </div>
+    <button type="submit" class="btn btn-primary btn-lg" id="regBtn" style="width:100%;justify-content:center;margin-top:8px">
+      <i class="fas fa-user-plus"></i> Create Account
+    </button>
+  </form>
+  <p style="text-align:center;margin-top:18px;color:var(--gray);font-size:.9rem">
+    Already have an account? <a href="login.html" style="color:var(--primary);font-weight:600">Login here</a>
+  </p>
+</div>
+<script src="js/db.js"></script>
+<script>
+  if (DB.isLoggedIn()) location.href = 'index.html';
+
+  function togglePassword(inputId, btn) {
+    const input = document.getElementById(inputId);
+    const icon = btn.querySelector('i');
+    if (input.type === 'password') {
+      input.type = 'text';
+      icon.classList.remove('fa-eye');
+      icon.classList.add('fa-eye-slash');
+    } else {
+      input.type = 'password';
+      icon.classList.remove('fa-eye-slash');
+      icon.classList.add('fa-eye');
+    }
+  }
+
+  function isValidEmailHandle(email) {
+    if (!email || !email.includes('@')) return false;
+    const parts = email.trim().toLowerCase().split('@');
+    if (parts.length !== 2 || !parts[0] || !parts[1]) return false;
+    const domain = parts[1];
+    const allowedDomains = ['gmail.com', 'tripzen.com', 'yahoo.com', 'outlook.com', 'hotmail.com', 'icloud.com'];
+    const validDomainPattern = /^[a-z0-9-]+(\.[a-z0-9-]+)*\.(com|org|net|edu|in|co|io|ac\.in|edu\.in)$/i;
+    return allowedDomains.includes(domain) || validDomainPattern.test(domain);
+  }
+
+  function doRegister(e) {
+    e.preventDefault();
+    const email = document.getElementById('email').value.trim();
+    const pass = document.getElementById('password').value;
+    const conf = document.getElementById('confirmPassword').value;
+
+    if (!isValidEmailHandle(email)) {
+      showAlert('alertBox', '❌ Email must end with a valid handle (e.g., @gmail.com, @tripzen.com, @yahoo.com, @outlook.com)', 'error');
+      return;
+    }
+
+    if (pass !== conf) {
+      showAlert('alertBox', '❌ Passwords do not match!', 'error');
+      return;
+    }
+
+    const btn = document.getElementById('regBtn');
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
+    btn.disabled = true;
+    setTimeout(() => {
+      try {
+        const user = DB.registerUser(
+          document.getElementById('name').value.trim(),
+          email,
+          pass,
+          document.getElementById('phone').value.trim()
+        );
+        DB.loginUser(user.email, pass);
+        showAlert('alertBox','✅ Account created! Redirecting...','success');
+        setTimeout(() => location.href = 'index.html', 900);
+      } catch(err) {
+        showAlert('alertBox','❌ ' + err.message,'error');
+        btn.innerHTML = '<i class="fas fa-user-plus"></i> Create Account';
+        btn.disabled = false;
+      }
+    }, 600);
+  }
+</script>
+</body>
+</html>

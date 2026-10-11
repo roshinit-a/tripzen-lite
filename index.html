@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" media="print" onload="this.media='all'">
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <div class="logo">Trip<span>Zen</span> ✈️</div>
+  <ul class="nav-links">
+    <li><a href="index.html" class="active">Home</a></li>
+    <li><a href="destinations.html">Destinations</a></li>
+    <li><a href="hotels.html">Hotels</a></li>
+    <li><a href="packages.html">Packages</a></li>
+    <li><a href="my-bookings.html">My Bookings</a></li>
+  </ul>
+  <div class="nav-right">
+    <a href="login.html" id="navLogin"><button class="btn btn-outline">Login</button></a>
+    <a href="register.html" id="navRegister"><button class="btn btn-primary">Register</button></a>
+    <div id="navUser" style="display:none;gap:10px;align-items:center"></div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-content">
+    <div style="font-size:3.8rem;margin-bottom:12px">🌍</div>
+    <h1>Explore The World<br>With <span style="color:var(--secondary)">TripZen</span></h1>
+    <p>Plan your perfect journey — best packages, top destinations, easy booking</p>
+    <div class="search-box">
+      <div class="form-group">
+        <label class="form-label">🔍 Where to go?</label>
+        <input type="text" class="form-control" id="sSearch" placeholder="E.g. Goa, Manali, Jaipur...">
+      </div>
+      <div class="form-group">
+        <label class="form-label">📅 Travel Date</label>
+        <input type="date" class="form-control" id="sDate">
+      </div>
+      <div class="form-group">
+        <label class="form-label">👥 Persons</label>
+        <input type="number" class="form-control" id="sPersons" placeholder="2" min="1" max="20">
+      </div>
+      <button class="btn btn-secondary btn-lg" onclick="doSearch()">
+        <i class="fas fa-search"></i> Search
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats-bar">
+  <div class="stat-item"><h2>500+</h2><p>Happy Travelers</p></div>
+  <div class="stat-item"><h2>50+</h2><p>Destinations</p></div>
+  <div class="stat-item"><h2>100+</h2><p>Travel Packages</p></div>
+  <div class="stat-item"><h2>24/7</h2><p>Support</p></div>
+</div>
+
+<!-- DESTINATIONS -->
+<section class="section">
+  <div class="section-title">
+    <h2>Popular <span class="highlight">Destinations</span></h2>
+    <p>Discover the most loved travel spots across India</p>
+  </div>
+  <div class="grid-3" id="destGrid"></div>
+  <div style="text-align:center;margin-top:32px">
+    <a href="destinations.html"><button class="btn btn-outline btn-lg">View All Destinations →</button></a>
+  </div>
+</section>
+
+<!-- PACKAGES -->
+<section class="section section-white">
+  <div class="section-title">
+    <h2>Popular <span class="highlight">Travel Packages</span></h2>
+    <p>Handpicked all-inclusive packages for every traveler</p>
+  </div>
+  <div class="grid-3" id="pkgGrid"></div>
+  <div style="text-align:center;margin-top:32px">
+    <a href="packages.html"><button class="btn btn-primary btn-lg">Explore All Packages →</button></a>
+  </div>
+</section>
+
+<!-- WHY US -->
+<section class="section">
+  <div class="section-title">
+    <h2>Why Choose <span class="highlight">TripZen?</span></h2>
+    <p>We make travel planning simple, safe and memorable</p>
+  </div>
+  <div class="grid-4">
+    <div class="why-card"><div class="why-icon">✈️</div><h3>Easy Booking</h3><p>Book your dream trip in just a few clicks</p></div>
+    <div class="why-card"><div class="why-icon">🔒</div><h3>Secure Payment</h3><p>100% safe simulated payment system</p></div>
+    <div class="why-card"><div class="why-icon">🏆</div><h3>Best Packages</h3><p>Curated packages with the best value</p></div>
+    <div class="why-card"><div class="why-icon">📞</div><h3>24/7 Support</h3><p>Travel experts always ready to help</p></div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <span class="logo">Trip<span>Zen</span> ✈️</span>
+      <p>Your trusted travel companion for exploring the world. Discover, book and experience amazing journeys.</p>
+    </div>
+    <div class="footer-links"><h4>Quick Links</h4><ul>
+      <li><a href="index.html">Home</a></li>
+      <li><a href="destinations.html">Destinations</a></li>
+      <li><a href="packages.html">Packages</a></li>
+      <li><a href="hotels.html">Hotels</a></li>
+    </ul></div>
+    <div class="footer-links"><h4>Account</h4><ul>
+      <li><a href="login.html">Login</a></li>
+      <li><a href="register.html">Register</a></li>
+      <li><a href="my-bookings.html">My Bookings</a></li>
+    </ul></div>
+    <div class="footer-links"><h4>Contact</h4><ul>
+      <li><a href="#">📧 info@tripzen.com</a></li>
+      <li><a href="#">📞 999xxxxx99</a></li>
+      <li><a href="#">📍 Bokaro, Jharkhand</a></li>
+    </ul></div>
+  </div>
+  <div class="footer-bottom"><p>&copy; 2026 TripZen. All rights reserved. Made with ❤️ for travelers.</p></div>
+</footer>
+
+<script src="js/db.js"></script>
+<script>
+  // Load destinations
+  const dests = DB.getDests().slice(0,6);
+  document.getElementById('destGrid').innerHTML = dests.map(d => `
+    <div class="dest-card" onclick="location.href='destinations.html'">
+      <img src="${d.imageUrl}" alt="${d.name}" loading="lazy" decoding="async"
+           onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?auto=format&fit=crop&w=400&q=60'">
+      <div class="dest-info">
+        <h3>🏔️ ${d.name}</h3>
+        <p>${d.state}, ${d.country} &nbsp;•&nbsp; Best: ${d.bestTime}</p>
+      </div>
+    </div>
+  `).join('');
+
+  // Load packages
+  const pkgs = DB.getPackages().slice(0,6);
+  document.getElementById('pkgGrid').innerHTML = pkgs.map(p => `
+    <div class="card">
+      <img src="${p.imageUrl}" alt="${p.name}" class="card-img" loading="lazy" decoding="async"
+           onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?auto=format&fit=crop&w=400&q=60'">
+      <div class="card-body">
+        <h3 class="card-title">${p.name}</h3>
+        <p class="card-text">📍 ${p.destName} &nbsp;•&nbsp; 📅 ${p.days} Days</p>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div><span class="price">${formatCurrency(p.price)}</span><br><small class="price-small">per person</small></div>
+          <a href="package-details.html?id=${p.id}"><button class="btn btn-primary btn-sm">View Details</button></a>
+        </div>
+      </div>
+    </div>
+  `).join('');
+
+  function doSearch() {
+    const q = document.getElementById('sSearch').value;
+    const d = document.getElementById('sDate').value;
+    const n = document.getElementById('sPersons').value;
+    const params = new URLSearchParams();
+    if(q) params.set('q',q);
+    if(d) params.set('date',d);
+    if(n) params.set('persons',n);
+    location.href = 'packages.html?' + params.toString();
+  }
+</script>
+</body>
+</html>

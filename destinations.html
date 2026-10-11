@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Destinations – TripZen</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+<nav class="navbar">
+  <a href="index.html" class="logo">Trip<span>Zen</span> ✈️</a>
+  <ul class="nav-links">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="destinations.html" class="active">Destinations</a></li>
+    <li><a href="hotels.html">Hotels</a></li>
+    <li><a href="packages.html">Packages</a></li>
+    <li><a href="my-bookings.html">My Bookings</a></li>
+  </ul>
+  <div class="nav-right">
+    <a href="login.html" id="navLogin"><button class="btn btn-outline">Login</button></a>
+    <a href="register.html" id="navRegister"><button class="btn btn-primary">Register</button></a>
+    <div id="navUser" style="display:none;gap:10px;align-items:center"></div>
+  </div>
+</nav>
+
+<div class="page-header">
+  <h1>🌏 Explore Destinations</h1>
+  <p>Discover amazing places and plan your next adventure</p>
+</div>
+
+<section class="section">
+  <div style="display:flex;gap:14px;background:white;padding:18px;border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:28px;flex-wrap:wrap;align-items:center">
+    <input type="text" class="form-control" id="searchInput" placeholder="🔍 Search destinations..." style="max-width:300px" oninput="render()">
+    <span style="color:var(--gray);font-size:.88rem" id="countTxt"></span>
+  </div>
+  <div class="grid-3" id="destGrid"></div>
+</section>
+
+<footer style="background:var(--dark);color:#ccc;padding:22px 5%;text-align:center"><p>&copy; 2026 TripZen. All rights reserved.</p></footer>
+
+<script src="js/db.js"></script>
+<script>
+  let all = DB.getDests();
+  function render() {
+    const q = document.getElementById('searchInput').value.toLowerCase();
+    const filtered = all.filter(d => d.name.toLowerCase().includes(q) || d.state.toLowerCase().includes(q));
+    document.getElementById('countTxt').textContent = filtered.length + ' destinations found';
+    document.getElementById('destGrid').innerHTML = filtered.map(d => `
+      <div class="dest-card" onclick="location.href='packages.html?destId=${d.id}'">
+        <img src="${d.imageUrl}" alt="${d.name}" onerror="this.src='https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=600'">
+        <div class="dest-info">
+          <h3>🏔️ ${d.name}</h3>
+          <p>${d.state}, ${d.country}</p>
+          <p style="font-size:.78rem">Best Time: ${d.bestTime}</p>
+        </div>
+      </div>
+    `).join('') || '<p style="color:var(--gray)">No destinations found.</p>';
+  }
+  render();
+</script>
+</body>
+</html>
